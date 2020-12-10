@@ -30,6 +30,6 @@ re.findall(r'GC[AG][AT]TG', string1)
 #split nucleotide sequence into individual vectors
 nuc_vector<-strsplit(py$string1, "")[[1]]
 #count frequency of each base
-table(strsplit(py$string1, "")[[1]])
+table(nuc_vector)
 ```
 *This code results in the the total frequencies of each base in string 1.*

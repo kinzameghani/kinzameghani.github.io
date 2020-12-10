@@ -89,8 +89,8 @@ re.findall(r&#39;A[ATCG]TAAT&#39;, string1)</code></pre>
 <pre class="r"><code>#split nucleotide sequence into individual vectors
 nuc_vector&lt;-strsplit(py$string1, &quot;&quot;)[[1]]
 #count frequency of each base
-table(strsplit(py$string1, &quot;&quot;)[[1]])</code></pre>
-<pre><code>## 
+table(nuc_vector)</code></pre>
+<pre><code>## nuc_vector
 ##   A   C   G   T 
 ## 501 507 508 496</code></pre>
 <p><em>This code results in the the total frequencies of each base in string 1.</em></p>
