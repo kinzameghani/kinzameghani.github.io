@@ -74,12 +74,12 @@
 <script src="/rmarkdown-libs/anchor-sections/anchor-sections.js"></script>
 
 
-<div id="introduction-4-pts" class="section level4">
-<h4>0. Introduction (4 pts)</h4>
+<div id="introduction" class="section level4">
+<h4>0. Introduction</h4>
 <p>I chose 3 different datasets to join for my project. The first contains the mortality rate due to Noncommunicable diseases (NCDs) for countries around the world. The second contains more general data like GDP, Life Expectancy, and Status of the country. It also has potential predictors of NCDs like Schooling and BMI. The third data set contains the Universal Health Coverage (UHC) Service Coverage data. From this dataset, I included the statistics speciically relating to Service Coverage regarding NCDs and the overall ranking that determines if the country’s coverage is “high”, “medium”, or “low”. I acquired all 3 datasets from the Worl Health Organization, so my joining variable of Country will be mostly represented in each dataset. Last summer, I had a health intership in Mombasa, Kenya where I conducted a stroke awareness research project. I am now writing a thesis regarding preventative care in low-resource communities. So, the topics of NCDs and predictors of it are extremely intersting and relevant to me. I expect that developed countries and countries with higher rankings of service coverage will have lower mortality rates. However, NCDs are common in developed and developinng countries, so I expect the mortality rates to not be too different.</p>
 </div>
-<div id="tidying-rearranging-widelong-8-pts" class="section level4">
-<h4>1. Tidying: Rearranging Wide/Long (8 pts)</h4>
+<div id="tidying-rearranging-widelong" class="section level4">
+<h4>1. Tidying: Rearranging Wide/Long</h4>
 <ul>
 <li>Tidy the datasets (using the <code>tidyr</code> functions <code>pivot_longer</code>/<code>gather</code> and/or <code>pivot_wider</code>/<code>spread</code>)</li>
 <li>If you data sets are already tidy, be sure to use those functions somewhere else in your project</li>
@@ -119,8 +119,8 @@ service_coverage_tidy &lt;- service_coverage_ %&gt;% mutate(Year=2015) #Created 
 ####Tidying the Life Expectancy Data
 Life_Expectancy_Tidy &lt;-Life_Expectancy_Data[-c(6,9,10,12,13,15,16,18,19,20)]</code></pre>
 </div>
-<div id="joiningmerging-8-pts" class="section level4">
-<h4>2. Joining/Merging (8 pts)</h4>
+<div id="joiningmerging" class="section level4">
+<h4>2. Joining/Merging</h4>
 <ul>
 <li>Join your datasets into one using a <code>dplyr</code> join function</li>
 <li>If you have multiple observations on the joining variable in either dataset, fix this by collapsing via summarize</li>

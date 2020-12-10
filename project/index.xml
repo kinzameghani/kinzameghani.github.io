@@ -13,7 +13,7 @@
       <pubDate>Sun, 18 Oct 2020 00:00:00 +0000</pubDate>
       
       <guid>/project/project1/</guid>
-      <description>0. Introduction (4 pts) I chose 3 different datasets to join for my project. The first contains the mortality rate due to Noncommunicable diseases (NCDs) for countries around the world. The second contains more general data like GDP, Life Expectancy, and Status of the country. It also has potential predictors of NCDs like Schooling and BMI. The third data set contains the Universal Health Coverage (UHC) Service Coverage data.</description>
+      <description>0. Introduction I chose 3 different datasets to join for my project. The first contains the mortality rate due to Noncommunicable diseases (NCDs) for countries around the world. The second contains more general data like GDP, Life Expectancy, and Status of the country. It also has potential predictors of NCDs like Schooling and BMI. The third data set contains the Universal Health Coverage (UHC) Service Coverage data. From this dataset, I included the statistics speciically relating to Service Coverage regarding NCDs and the overall ranking that determines if the country’s coverage is “high”, “medium”, or “low”.</description>
     </item>
     
     <item>
@@ -22,7 +22,7 @@
       <pubDate>Tue, 22 Sep 2020 00:00:00 +0000</pubDate>
       
       <guid>/project/project2/</guid>
-      <description>Guidelines and Rubric #Introduction My dataset consists of 1,138 people and the charges of their medical costs billed by their health insurance. The other main variables include their age, sex, BMI, number of children, smoker status, and residential region across the US. An interesting thing to see is if any of these factors predict higher insurance charges.
+      <description>#Introduction My dataset consists of 1,138 people and the charges of their medical costs billed by their health insurance. The other main variables include their age, sex, BMI, number of children, smoker status, and residential region across the US. An interesting thing to see is if any of these factors predict higher insurance charges.
 insurance &amp;lt;- read.csv(&amp;quot;insurance.csv&amp;quot;) glimpse(insurance) ## Rows: 1,338 ## Columns: 7 ## $ age &amp;lt;int&amp;gt; 19, 18, 28, 33, 32, 31, 46, 37, 37, 60, 25, 62, 23, 56, 27, 19, 52, 23, 56, 30, … ## $ sex &amp;lt;fct&amp;gt; female, male, male, male, male, female, female, female, male, female, male, fema… ## $ bmi &amp;lt;dbl&amp;gt; 27.</description>
     </item>
     

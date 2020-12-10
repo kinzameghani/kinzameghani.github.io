@@ -58,7 +58,7 @@ data.frame(acc,sens,spec,ppv,f1,auc)
 }
 ```
 
-## Guidelines and Rubric
+
 
 #Introduction
 My dataset consists of 1,138 people and the charges of their medical costs billed by their health insurance. The other main variables include their age, sex, BMI, number of children, smoker status, and residential region across the US. An interesting thing to see is if any of these factors predict higher insurance charges. 

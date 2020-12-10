@@ -9,7 +9,9 @@ description: ''
 ---
 
 ![](/post/2020-12-09-interacting-python-and-r_files/pythonlogo.png)
+Blog Post #1
 
+*Below is an example of using R and Python together.*
 ```{r}
 library(reticulate)
 ```

@@ -17,11 +17,11 @@ knitr::opts_chunk$set(echo = TRUE, eval = TRUE, fig.align = "center", warning = 
 tidy=TRUE, tidy.opts=list(width.cutoff=60), R.options=list(max.print=100))
 ```
 
-#### 0. Introduction (4  pts)
+#### 0. Introduction
 
 I chose 3 different datasets to join for my project. The first contains the mortality rate due to Noncommunicable diseases (NCDs) for countries around the world. The second contains more general data like GDP, Life Expectancy, and Status of the country. It also has potential predictors of NCDs like Schooling and BMI. The third data set contains the Universal Health Coverage (UHC) Service Coverage data. From this dataset, I included the statistics speciically relating to Service Coverage regarding NCDs and the overall ranking that determines if the country's coverage is "high", "medium", or "low". I acquired all 3 datasets from the Worl Health Organization, so my joining variable of Country will be mostly represented in each dataset. Last summer, I had a health intership in Mombasa, Kenya where I conducted a stroke awareness research project. I am now writing a thesis regarding preventative care in low-resource communities. So, the topics of NCDs and predictors of it are extremely intersting and relevant to me. I expect that developed countries and countries with higher rankings of service coverage will have lower mortality rates. However, NCDs are common in developed and developinng countries, so I expect the mortality rates to not be too different.
 
-#### 1. Tidying: Rearranging Wide/Long (8 pts)
+#### 1. Tidying: Rearranging Wide/Long
 
 - Tidy the datasets (using the `tidyr` functions `pivot_longer`/`gather` and/or `pivot_wider`/`spread`) 
 - If you data sets are already tidy, be sure to use those functions somewhere else in your project
@@ -66,7 +66,7 @@ Life_Expectancy_Tidy <-Life_Expectancy_Data[-c(6,9,10,12,13,15,16,18,19,20)]
 ```
 
     
-#### 2. Joining/Merging (8 pts)
+#### 2. Joining/Merging
 
 - Join your datasets into one using a `dplyr` join function
 - If you have multiple observations on the joining variable in either dataset, fix this by collapsing via summarize

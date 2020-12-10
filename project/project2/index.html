@@ -74,8 +74,6 @@
 <script src="/rmarkdown-libs/anchor-sections/anchor-sections.js"></script>
 
 
-<div id="guidelines-and-rubric" class="section level2">
-<h2>Guidelines and Rubric</h2>
 <p>#Introduction
 My dataset consists of 1,138 people and the charges of their medical costs billed by their health insurance. The other main variables include their age, sex, BMI, number of children, smoker status, and residential region across the US. An interesting thing to see is if any of these factors predict higher insurance charges.</p>
 <pre class="r"><code>insurance &lt;- read.csv(&quot;insurance.csv&quot;)
@@ -205,7 +203,7 @@ rand_dist[i]&lt;-mean(new[new$sex==&quot;male&quot;,]$charges)-
   mean(new[new$sex==&quot;female&quot;,]$charges)}
 
 mean(rand_dist&gt;1387.172 | rand_dist&lt; -1387.172) #two-tailed p value</code></pre>
-<pre><code>## [1] 0.0328</code></pre>
+<pre><code>## [1] 0.0324</code></pre>
 <pre class="r"><code>#plot
 {hist(rand_dist,main=&quot;&quot;,ylab=&quot;&quot;); abline(v = c(-1387.17, 1387.17),col=&quot;red&quot;)}</code></pre>
 <p><img src="/project/project2_files/figure-html/unnamed-chunk-3-1.png" width="768" style="display: block; margin: auto;" />
@@ -321,7 +319,7 @@ coef(fit)
 ## Booststrapped SEs (resampling observations)
 samp_distn%&gt;%t%&gt;%as.data.frame%&gt;%summarize_all(sd)</code></pre>
 <pre><code>##   (Intercept)    bmi_c smokeryes bmi_c:smokeryes
-## 1    183.8543 28.75503  450.9804        77.30824</code></pre>
+## 1    185.2259 28.58406  454.0138        78.09879</code></pre>
 <pre class="r"><code>#uncorrected/Normal SEs
 summary(fit)$coef</code></pre>
 <pre><code>## Estimate Std. Error t value Pr(&gt;|t|)
@@ -442,8 +440,8 @@ diags&lt;-rbind(diags,class_diag(probs,truth))
 }
 diags%&gt;%summarize_all(mean)</code></pre>
 <pre><code>## acc sens spec ppv f1 auc
-## 1 0.9521995 0.9199774 0.9626009 0.8625089 0.8868603
-0.9854195</code></pre>
+## 1 0.9506453 0.9038182 0.963487 0.8641204 0.881223
+0.9851365</code></pre>
 <pre class="r"><code>#LASSO
 library(glmnet)
 y &lt;- as.matrix(insurance$y)
@@ -479,11 +477,10 @@ for(i in 1:k){
 }
 diags%&gt;%summarize_all(mean)</code></pre>
 <pre><code>## acc sens spec ppv f1 auc
-## 1 0.9529121 0.9041291 0.9660988 0.8728562 0.8870482
-0.9850233</code></pre>
+## 1 0.9514196 0.9075633 0.9637795 0.8608473 0.8798743
+0.9862667</code></pre>
 <p>This new model with all the variables has an accuracy of 96.04%, sensitivity of 94.52%, specificity of 96.42%, precision of 98.65%, and an AUC of 0.986. All of these values are really high indicating that this model is a good predictor of distinguishing between smokers and nonn-smokers. When doing the out-of-sample model, the accuracy is 95.59%, sensitivity of 92.56%, specificity of 96.43%, precision of 86.82%, and an AUC of 98.57%. These values are almost exactly the same as the diagnostic values of the in-sample model. This means our original model was not doing a lot of overfitting and is a relatively accurate model to use.</p>
 <p>When performing the LASSO, there the most predictive variables were BMI, insurance charges, and age. For my 10-fold CV, there was an accuracy of 95.51%, sensitivity of 91.49%, specificity of 96.51%, precision of 87.53%, and an AUC of 0.985. These results are surprisingly similar to the model with all variables. The specificity and precision slightly increased from previous model’s out-of-sample results while the AUC remained the same. This means that this model is slightly better at predicting both true values and false values. Overall, both models’ AUCs are considered great meaning they have a high probability of predicting a smoker from a non-smoker.</p>
-</div>
 
             
         <hr>         <div class="related-posts">
