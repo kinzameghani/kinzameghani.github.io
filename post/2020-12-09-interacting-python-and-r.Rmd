@@ -32,4 +32,4 @@ nuc_vector<-strsplit(py$string1, "")[[1]]
 #count frequency of each base
 table(strsplit(py$string1, "")[[1]])
 ```
-*This code results in the the total frequencies of each base in string 1, not accounting for the bases that code for multiple bases(e.g.N,R,W).*
+*This code results in the the total frequencies of each base in string 1.*
