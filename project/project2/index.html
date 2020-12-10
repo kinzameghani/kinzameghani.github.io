@@ -60,7 +60,7 @@
  
 <div class="blog-title">
           <h4>
-         January 1, 0001 
+         September 22, 2020 
             &nbsp;&nbsp;
             
           </h4>
@@ -205,7 +205,7 @@ rand_dist[i]&lt;-mean(new[new$sex==&quot;male&quot;,]$charges)-
   mean(new[new$sex==&quot;female&quot;,]$charges)}
 
 mean(rand_dist&gt;1387.172 | rand_dist&lt; -1387.172) #two-tailed p value</code></pre>
-<pre><code>## [1] 0.0376</code></pre>
+<pre><code>## [1] 0.0328</code></pre>
 <pre class="r"><code>#plot
 {hist(rand_dist,main=&quot;&quot;,ylab=&quot;&quot;); abline(v = c(-1387.17, 1387.17),col=&quot;red&quot;)}</code></pre>
 <p><img src="/project/project2_files/figure-html/unnamed-chunk-3-1.png" width="768" style="display: block; margin: auto;" />
@@ -321,7 +321,7 @@ coef(fit)
 ## Booststrapped SEs (resampling observations)
 samp_distn%&gt;%t%&gt;%as.data.frame%&gt;%summarize_all(sd)</code></pre>
 <pre><code>##   (Intercept)    bmi_c smokeryes bmi_c:smokeryes
-## 1    184.4034 28.81325  447.8529        76.33466</code></pre>
+## 1    183.8543 28.75503  450.9804        77.30824</code></pre>
 <pre class="r"><code>#uncorrected/Normal SEs
 summary(fit)$coef</code></pre>
 <pre><code>## Estimate Std. Error t value Pr(&gt;|t|)
@@ -442,8 +442,8 @@ diags&lt;-rbind(diags,class_diag(probs,truth))
 }
 diags%&gt;%summarize_all(mean)</code></pre>
 <pre><code>## acc sens spec ppv f1 auc
-## 1 0.9521546 0.8936284 0.9638653 0.8453717 0.865519
-0.9848734</code></pre>
+## 1 0.9521995 0.9199774 0.9626009 0.8625089 0.8868603
+0.9854195</code></pre>
 <pre class="r"><code>#LASSO
 library(glmnet)
 y &lt;- as.matrix(insurance$y)
@@ -453,15 +453,15 @@ cv&lt;-cv.glmnet(x,y,family=&quot;binomial&quot;)
 lasso&lt;-glmnet(x,y,family=&quot;binomial&quot;,lambda=cv$lambda.1se)
 coef(lasso)</code></pre>
 <pre><code>## 9 x 1 sparse Matrix of class &quot;dgCMatrix&quot;
-##                          s0
-## (Intercept)     -2.92013700
-## bmi_c           -1.22491565
-## charges          3.33887023
-## children        -0.02645608
-## age_c           -0.85892304
-## sexmale          0.01775259
-## regionnorthwest  .         
-## regionsoutheast  .         
+##                         s0
+## (Intercept)     -2.7323928
+## bmi_c           -1.0675022
+## charges          3.1238339
+## children         .        
+## age_c           -0.7649253
+## sexmale          .        
+## regionnorthwest  .        
+## regionsoutheast  .        
 ## regionsouthwest  .</code></pre>
 <pre class="r"><code>#10 fold using only LASSO selected variables
 k=10
@@ -479,8 +479,8 @@ for(i in 1:k){
 }
 diags%&gt;%summarize_all(mean)</code></pre>
 <pre><code>## acc sens spec ppv f1 auc
-## 1 0.952149 0.9053051 0.9647643 0.8634927 0.8815328
-0.9861011</code></pre>
+## 1 0.9529121 0.9041291 0.9660988 0.8728562 0.8870482
+0.9850233</code></pre>
 <p>This new model with all the variables has an accuracy of 96.04%, sensitivity of 94.52%, specificity of 96.42%, precision of 98.65%, and an AUC of 0.986. All of these values are really high indicating that this model is a good predictor of distinguishing between smokers and nonn-smokers. When doing the out-of-sample model, the accuracy is 95.59%, sensitivity of 92.56%, specificity of 96.43%, precision of 86.82%, and an AUC of 98.57%. These values are almost exactly the same as the diagnostic values of the in-sample model. This means our original model was not doing a lot of overfitting and is a relatively accurate model to use.</p>
 <p>When performing the LASSO, there the most predictive variables were BMI, insurance charges, and age. For my 10-fold CV, there was an accuracy of 95.51%, sensitivity of 91.49%, specificity of 96.51%, precision of 87.53%, and an AUC of 0.985. These results are surprisingly similar to the model with all variables. The specificity and precision slightly increased from previous model’s out-of-sample results while the AUC remained the same. This means that this model is slightly better at predicting both true values and false values. Overall, both models’ AUCs are considered great meaning they have a high probability of predicting a smoker from a non-smoker.</p>
 </div>
