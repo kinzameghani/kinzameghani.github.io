@@ -1,0 +1,278 @@
+---
+title: 'Project 1: Exploratory Data Analysis'
+author: "Kinza Meghani"
+date: '10/18/2020'
+output:
+  html_document:
+    toc: yes
+    toc_float:
+      collapsed: no
+      smooth_scroll: yes
+  pdf_document:
+    toc: no
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, eval = TRUE, fig.align = "center", warning = F, message = F,
+tidy=TRUE, tidy.opts=list(width.cutoff=60), R.options=list(max.print=100))
+```
+
+#### 0. Introduction (4  pts)
+
+I chose 3 different datasets to join for my project. The first contains the mortality rate due to Noncommunicable diseases (NCDs) for countries around the world. The second contains more general data like GDP, Life Expectancy, and Status of the country. It also has potential predictors of NCDs like Schooling and BMI. The third data set contains the Universal Health Coverage (UHC) Service Coverage data. From this dataset, I included the statistics speciically relating to Service Coverage regarding NCDs and the overall ranking that determines if the country's coverage is "high", "medium", or "low". I acquired all 3 datasets from the Worl Health Organization, so my joining variable of Country will be mostly represented in each dataset. Last summer, I had a health intership in Mombasa, Kenya where I conducted a stroke awareness research project. I am now writing a thesis regarding preventative care in low-resource communities. So, the topics of NCDs and predictors of it are extremely intersting and relevant to me. I expect that developed countries and countries with higher rankings of service coverage will have lower mortality rates. However, NCDs are common in developed and developinng countries, so I expect the mortality rates to not be too different.
+
+#### 1. Tidying: Rearranging Wide/Long (8 pts)
+
+- Tidy the datasets (using the `tidyr` functions `pivot_longer`/`gather` and/or `pivot_wider`/`spread`) 
+- If you data sets are already tidy, be sure to use those functions somewhere else in your project
+- Document the process (describe in words what was done per the instructions)
+ 
+
+```{r}
+library(tidyverse)
+library(cluster)
+library(kableExtra)
+library(dplyr)
+library(ggplot2)
+library(RColorBrewer)
+
+#My three datasets
+Life_Expectancy_Data <- read.csv("Life_Expectancy_Data.csv")
+noncommunicable_diseases <- read.csv("noncommunicable_diseases.csv")
+service_coverage <- read.csv("service_coverage.csv")
+
+
+####Tidying the Noncommunicable Disease Data set
+#deleted the row indicating sex to help tidy in the next step
+deleted_row<-noncommunicable_diseases[-1,] 
+
+#Now, I am renaming the columns so it will already be named when I use pivot_longer to create a new column for "sex"
+renamed_data <- deleted_row %>% rename("Both sexes" = "Age.standardized.NCD.mortality.rate...per.100.000.population.", "Male" = "Age.standardized.NCD.mortality.rate...per.100.000.population._1", "Female" = "Age.standardized.NCD.mortality.rate...per.100.000.population._2")
+
+#In this step, I decreased the number of columns using pivot_longer to better analyze the data 
+noncom_diseases <- renamed_data %>% pivot_longer(cols= 3:5, names_to="sex", values_to="Age-standardized NCD mortality rate  (per 100 000 population)")
+#Removing variables that aren't necessary in my analysis
+noncom_diseases_tidy<-noncom_diseases[-c(3:5)]
+
+####Tidying the Service Coverage data set
+delete_row_sc<-service_coverage[-1,] #deleting row with years becuase only one year corresponds to the rest of my data 
+service_coverage_<-delete_row_sc[-c(3,4:10,12,13)] #Only keeping the variables that are relevant to my analysis
+service_coverage_tidy <- service_coverage_ %>% mutate(Year=2015) #Created new year column so it can merge with my data
+
+
+####Tidying the Life Expectancy Data
+Life_Expectancy_Tidy <-Life_Expectancy_Data[-c(6,9,10,12,13,15,16,18,19,20)]
+
+```
+
+    
+#### 2. Joining/Merging (8 pts)
+
+- Join your datasets into one using a `dplyr` join function
+- If you have multiple observations on the joining variable in either dataset, fix this by collapsing via summarize
+- Discuss the process in words, including why you chose the join you did
+- Discuss which cases were dropped, if any, and potential problems with this
+
+```{r}
+#Merging all 3 datasets together in final dataset called "proj"
+proj_2_dataset <- inner_join(noncom_diseases_tidy, Life_Expectancy_Tidy)
+proj_join<-inner_join(proj_2_dataset, service_coverage_tidy)
+proj<-proj_join[-c(7:9,11,13)] #Deleting other columns that I will not be looking at in my project
+#Since all the data is now from the same Year, 2015, I will remove this column.
+proj<-proj[-2]
+
+#Summarizing which cases were dropped
+country1<-noncom_diseases_tidy$Country
+country2<-Life_Expectancy_Data$Country
+
+setdiff(country1, country2)
+setdiff(country2, country1)
+
+Life_Expectancy_Data %>% summarize_all(n_distinct) #193 distinct countries
+noncom_diseases_tidy %>% summarize_all(n_distinct) #183 distinct countries
+service_coverage %>% summarize_all(n_distinct) #184 distinct countries
+proj %>% summarize_all(n_distinct) #181 distinct countries
+```
+*I used inner join to combine the datasets because I only wanted to keep the values that were found and matching inn both datasets. This included having the same countries and the same year of data, which resulted in all the data being from 2015. There were 12 countries were dropped because there wasn't matching for these countries in the noncommunicable disease dataset.*
+
+
+#### 3. Wrangling
+
+```{r}
+library(dplyr)
+
+#renaming variables so it is easier to conduct summary statisctics
+as.data.frame(names(proj))
+names(proj)[3] <- "NCD_mortality_rate"
+names(proj)[9] <-"Service_Coverage_Ranking"
+names(proj)[10]<- "UHC_SCI_NCD"
+
+#The NCD mortality rate is showing up as a character value, so I converted the values to a numeric value
+proj$NCD_mortality_rate<-as.numeric(as.character(proj$NCD_mortality_rate))
+
+
+#Adding new variable that classifies BMI scores as either "Underweight" , "Normal or Healthy Weight" "Overweight" and "Obese". This will help us more easily see which countries have a higher risk for NCDs.
+
+proj<-proj %>% mutate(BMI_Ranking = case_when(BMI>30 ~ "Obese",
+                                                 BMI<=29.9 & 25<=BMI ~ "Overweight",
+                                                 BMI<25 & 18.5<=BMI ~ "Normal or Healthy Weight",
+                                                 BMI<18.5 ~ "Underweight"))
+
+#General Summary Statistics for Numeric Variables
+
+#Means
+library(kableExtra)
+proj %>% summarize(mean_NCD_mortality_Rate = mean(NCD_mortality_rate),
+                   mean_Life_Expectancy = mean(Life.expectancy),
+                   mean_BMI = mean(BMI, na.rm=T),
+                   mean_GDP = mean(GDP, na.rm=T),
+                   mean_Schooling=mean(Schooling, na.rm=T),
+                   mean_Service_Coverage_NCD = mean(UHC_SCI_NCD)) %>% kable()
+#Standard Deviations
+proj %>% summarize(SD_NCD_mortality_Rate = sd(NCD_mortality_rate),
+                   SD_Life_Expectancy = sd(Life.expectancy),
+                   SD_BMI = sd(BMI, na.rm=T),
+                   SD_GDP = sd(GDP, na.rm=T),
+                   SD_Schooling=sd(Schooling, na.rm=T),
+                   SD_Service_Coverage_NCD = sd(UHC_SCI_NCD)) %>% kable()
+
+#Maxumum Values for each variable
+proj %>% summarize(Max_NCD_mortality_Rate = max(NCD_mortality_rate),
+                  Max_Life_Expectancy = max(Life.expectancy),
+                   Max_BMI = max(BMI, na.rm=T),
+                   Max_GDP = max(GDP, na.rm=T),
+                   Max_Schooling=max(Schooling, na.rm=T),
+                  Max_Service_Coverage_NCD = max(UHC_SCI_NCD)) %>% kable()
+
+#Miniumum Values for each variable
+proj %>% summarize(Min_NCD_mortality_Rate = min(NCD_mortality_rate),
+                  Min_Life_Expectancy = min(Life.expectancy),
+                   Min_BMI = min(BMI, na.rm=T),
+                   Min_GDP = min(GDP, na.rm=T),
+                   Min_Schooling=min(Schooling, na.rm=T),
+                  Min_Service_Coverage_NCD = min(UHC_SCI_NCD)) %>% kable()
+
+#Arranging by NCD Mortality Rate
+proj %>% arrange(-(NCD_mortality_rate))
+proj %>% arrange(NCD_mortality_rate)
+
+#Grouping Means using 1 cateforical variable (Status)
+proj %>% group_by(Status) %>% summarize_if(is.numeric, mean, nm.rm = T)
+
+#Grouping Means using 2 categorical variables (Service Coverage Ranking and BMI Ranking)
+proj %>% group_by(Service_Coverage_Ranking, BMI_Ranking) %>% summarize_if(is.numeric, mean,nm.rm=T)
+
+#Filtering based BMI Ranking
+proj %>% filter(BMI_Ranking=="Obese") %>% summarize(mean(NCD_mortality_rate))
+proj %>% filter(BMI_Ranking=="Underweight") %>% summarize(mean(NCD_mortality_rate))
+
+#
+proj %>%  select(Country, NCD_mortality_rate, Life.expectancy, Schooling) %>% arrange(Schooling)
+
+#correlation matrix
+cormat <- proj %>% select_if(is.numeric) %>% cor(use="pair")
+
+```
+*In the first section of summary statistics, I found the mean, standard deviation, maximum value, and minimum value for each variable to understand the global data. I then arranged the data by  noncommunicable disease mortality rate to see which countries had the highest and lowest rates. Khazikistan had the highest and Japan had the lowest NCD mortality rate. Next, I grouped the data by "Developing" and "Developed" countries and found the mean for each variable to see what the difference between the two. Then, I grouped the data by their service coverage ranking and the BMI ranking to see if countries with high coverage and a "Healthy Weight" population would have a lower mortality rate than the other countries. However, it appeared that there wasn't a drastic difference between the two. My next statistic filtered the data by countries who had an "Obese"population and "Underweight"population. Since lack of physcial activity, hypertension, and diet are common predictors of noncommunicable diseases, I wanted to see if there was a large difference in the mortality rate. Surprisingly, in both sets of countreis, the noncommunicable disease related mortality rate was very similar. Next, I selected for Country, NCD Mortality rate, Life Expectancy, and Schooling, to view if countries with lower education have lower life expectancy and higher mortality rates. Lastly, I created a correlation matrix to see which pairs of variables had the highest correlation. This matrix will be useful in my correlation heat map.*
+
+#### 4. Visualizing
+    
+```{r}
+#Correlation heatmap
+
+#First, I need to tidy the correlation matrix
+tidycor <- cormat %>% as.data.frame %>% rownames_to_column("var1") %>%
+pivot_longer(-1,names_to="var2",values_to="correlation")
+tidycor
+
+
+#Visualizing Correlation Matrix
+library(ggplot2)
+tidycor%>%ggplot(aes(var1,var2,fill=correlation))+
+geom_tile()+
+scale_fill_gradient2(low="red",mid="white",high="blue")+
+geom_text(aes(label=round(correlation,2)),color = "black", size = 1)+ 
+theme(axis.text.x = element_text(angle = 90, hjust=1))+ #
+coord_fixed() 
+
+```
+*The correlational heatmap created visually shows the strength of correlation between all of the numeric variables from my dataset. From this map, I see that schooling and life expectancy have the strongest positive correlation. This may emphasize that higher education can be associated with better life outcomes. NCD mortality rate and Life expectancy and NCD Mortality rate and Schooling have the strongest negative correlations. THis makes sense, because if there is higher NCD mortality rates in a country, many people are dying prematurely, which would lower the life expectancy. Similarily with schooling, lower levels of education are associated with higher NCD mortality rates. This also makes sense because schooling can often teach about health and provide opportunites for better health outcomes*
+```{r}
+#Plot 1
+library(RColorBrewer)
+proj %>% ggplot(aes(`GDP`, NCD_mortality_rate)) + geom_point(size=2, aes(color=UHC_SCI_NCD))+ggtitle("Noncommunicable Disease Mortality Rate across GDP for Countries around the World") + scale_fill_brewer(palette= "Set1") + ylab("Age-standardized NCD mortality rate  (per 100 000 population)") + xlab("GDP") + scale_x_continuous(n.breaks=10) + scale_y_continuous(n.breaks=10)+ labs(color = "SCI for NCDs")+theme_light()+scale_color_gradient(low="light blue", high="Dark blue")
+
+```
+*The plot depicts NCD mortality rate across GDP values for different countries, color-coded by the Service Coverage Index for Noncommunicable diseases. Based on this plit, there is a trend that higher GDP countries have lower NCD mortality rate. While that result was expected, I am surprised to see that there is high service coverage for NCDs in lower GDP countries. This shows that even countries with less to spend are still prioritizing heath outomes related to NCD as much as wealthier countries. I also did not expect for their to be countries with high mortality rate to also have high service coverage for NCDs. I would have assumed that countries that have essential services directed toward NCDs would be able to reduce their NCD deaths.*
+```{r}
+#Plot 2
+proj %>% ggplot(aes(x = Service_Coverage_Ranking, y = NCD_mortality_rate, fill=Status))+
+geom_bar(stat="summary", position="dodge")+geom_errorbar(stat="summary",position="dodge") +
+xlab("UHC Index of Service Coverage Ranking") + ylab("Age-standardized NCD mortality rate  (per 100 000 population)") + ggtitle("Noncommunicable Disease Mortality Rate by Service Coverage Index Globally") + theme_dark() +scale_fill_brewer(palette="Blues")
+
+```
+*In this barplot, I depicted the NCD mortality rate based on country's service coverage ranking and the status of the countries. As expected, Developing countries across all service coverage rankings have much higher overall NCD mortality rates. Furthermore, this plot shows that developing countries with low service coverage have the lower NCD mortality rate, which is extremely unexpected. However, the developing countries with low service coverage have the highest mortality rates. Between the low and high coverage for developing countries, there is very little difference in the mortality rates. This may be an indicator that there are other variables contributing to the high NCD mortality rate.* 
+
+#### 5. Dimensionality Reduction: K-means/PAM
+```{r}
+#k-means/PAM
+library(cluster)
+
+#First, process the data so it only has numeric variables
+proj_data <- proj %>% na.omit() %>% select_if(is.numeric)
+
+#Using silhouette method to chose number of cluster
+sil_width<-vector() 
+for(i in 2:10){
+kms <- kmeans(proj_data,centers=i) 
+sil <- silhouette(kms$cluster,dist(proj_data)) 
+sil_width[i]<-mean(sil[,3]) 
+}
+ggplot()+geom_line(aes(x=1:10,y=sil_width))+scale_x_continuous(name="k",breaks=1:10)
+```
+*This silhoutte method tells us that 2 clusters is optimal.*
+```{r}
+#Run CLuster Analysis (PAM)
+pam1 <- proj_data %>% scale %>% pam(k=2)
+pam1
+```
+
+```{r}
+#Visualize Clusters
+pamclust<-proj_data %>% mutate(cluster=as.factor(pam1$clustering))
+pamclust %>% ggplot(aes(NCD_mortality_rate,GDP,color=cluster)) + geom_point()
+```
+*Based on this plot, there are countries that can be clustered based on low GDP and a mid-range NCD mortality rate. This is differntiated from my other cluster in which countries are characterized by low mortality rate and high GDP.*
+```{r}
+#Visualize Clusters
+pamclust %>% ggplot(aes(NCD_mortality_rate,UHC_SCI_NCD,color=cluster)) + geom_point()
+```
+*In this plot, we can see my data's observations can be grouped into clusters characterized by higher NCD mortality rate. However, the clustering does not seem to be taking into account differences in service coverage for NCD's, because the spread on the Y axis seems to be very similar across both clusters. This indicates that my data's observations can be formed into distinct groups based on NCD mortality rate, but not sercive coverage for NCD's. This is likely because there are so many observations in my dataset, that they don't group well based on this particular pairwise combination because service coverage must be widely varied across all of my variations.*
+```{r}
+#Visualiz Clusters
+pamclust %>% ggplot(aes(GDP,UHC_SCI_NCD,color=cluster)) + geom_point()
+```
+*In this plot, clusters can be made from variation in GDP, but again, service coverage is not a good way to differentiate between twpo clustering groups because we can see that its spread is largely uniform across both clusters.*
+```{r}
+#Summary of clusters
+pamclust %>% group_by(cluster) %>% summarize_if(is.numeric,mean,na.rm=T)
+```
+
+```{r}
+#Goodness of Fit
+pam1$silinfo$avg.width
+plot(pam1,which=2)
+
+pam1$silinfo$widths %>% as.data.frame %>% mutate(x=dim(pam1$silinfo$widths)[1]:1)%>% 
+ggplot(aes(x, y=sil_width, fill=as.factor(cluster))) + geom_bar(stat="identity") + xlab("") +
+facet_grid(cluster~., scales="free_y") + coord_flip() + theme(legend.position="none")
+```
+*The average silhouette width was 0.31 meaning the structure is weak and could be artificial. When the silhouette width is low, it means that the structuring isn't very representative of my data and shouldn't be used further. A reason for this could be the variability in data, since my data looks at all countries around the world. To make the clusters more appropriate, more data cleaning needs to be done.* 
+
+
+...
+
+
+
+
+

@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="author" content="Kinza Meghani" />
+    
+    <link rel="shortcut icon" type="image/x-icon" href="/img/favicon.ico">
+    <title>Project 1: Exploratory Data Analysis</title>
+    <meta name="generator" content="Hugo 0.79.0" />
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <link rel="stylesheet" type="text/css" href="/css/main.css" />
+    <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" />
+    <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:200,400,200bold,400old" />
+    
+    <!--[if lt IE 9]>
+			<script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+			<script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+		<![endif]-->
+
+    
+  </head>
+
+  <body>
+    <div id="wrap">
+      
+      <nav class="navbar navbar-default">
+  <div class="container">
+    <div class="navbar-header">
+      <a class="navbar-brand" href="/"><i class="fa fa-home"></i></a>
+      <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <div class="navbar-collapse collapse" id="navbar">
+      <ul class="nav navbar-nav navbar-right">
+      
+        
+        <li><a href="/post/">BLOG</a></li>
+        
+        <li><a href="/projects/">PROJECTS</a></li>
+        
+        <li><a href="/resume/">RESUME</a></li>
+        
+      
+      </ul>
+    </div>
+  </div>
+</nav>
+
+      <div class="container">
+        <div class="blog-post">
+          <h3>
+            <strong><a href="/project/project1/">Project 1: Exploratory Data Analysis</a></strong>
+          </h3>
+        </div>
+ 
+<div class="blog-title">
+          <h4>
+         January 1, 0001 
+            &nbsp;&nbsp;
+            
+          </h4>
+        </div>
+
+        <div class="panel panel-default">
+          <div class="panel-body">
+            <div class="blogpost">
+              
+<link href="/rmarkdown-libs/anchor-sections/anchor-sections.css" rel="stylesheet" />
+<script src="/rmarkdown-libs/anchor-sections/anchor-sections.js"></script>
+
+
+<div id="introduction-4-pts" class="section level4">
+<h4>0. Introduction (4 pts)</h4>
+<p>I chose 3 different datasets to join for my project. The first contains the mortality rate due to Noncommunicable diseases (NCDs) for countries around the world. The second contains more general data like GDP, Life Expectancy, and Status of the country. It also has potential predictors of NCDs like Schooling and BMI. The third data set contains the Universal Health Coverage (UHC) Service Coverage data. From this dataset, I included the statistics speciically relating to Service Coverage regarding NCDs and the overall ranking that determines if the country’s coverage is “high”, “medium”, or “low”. I acquired all 3 datasets from the Worl Health Organization, so my joining variable of Country will be mostly represented in each dataset. Last summer, I had a health intership in Mombasa, Kenya where I conducted a stroke awareness research project. I am now writing a thesis regarding preventative care in low-resource communities. So, the topics of NCDs and predictors of it are extremely intersting and relevant to me. I expect that developed countries and countries with higher rankings of service coverage will have lower mortality rates. However, NCDs are common in developed and developinng countries, so I expect the mortality rates to not be too different.</p>
+</div>
+<div id="tidying-rearranging-widelong-8-pts" class="section level4">
+<h4>1. Tidying: Rearranging Wide/Long (8 pts)</h4>
+<ul>
+<li>Tidy the datasets (using the <code>tidyr</code> functions <code>pivot_longer</code>/<code>gather</code> and/or <code>pivot_wider</code>/<code>spread</code>)</li>
+<li>If you data sets are already tidy, be sure to use those functions somewhere else in your project</li>
+<li>Document the process (describe in words what was done per the instructions)</li>
+</ul>
+<pre class="r"><code>library(tidyverse)
+library(cluster)
+library(kableExtra)
+library(dplyr)
+library(ggplot2)
+library(RColorBrewer)
+
+#My three datasets
+Life_Expectancy_Data &lt;- read.csv(&quot;Life_Expectancy_Data.csv&quot;)
+noncommunicable_diseases &lt;- read.csv(&quot;noncommunicable_diseases.csv&quot;)
+service_coverage &lt;- read.csv(&quot;service_coverage.csv&quot;)
+
+
+####Tidying the Noncommunicable Disease Data set
+#deleted the row indicating sex to help tidy in the next step
+deleted_row&lt;-noncommunicable_diseases[-1,] 
+
+#Now, I am renaming the columns so it will already be named when I use pivot_longer to create a new column for &quot;sex&quot;
+renamed_data &lt;- deleted_row %&gt;% rename(&quot;Both sexes&quot; = &quot;Age.standardized.NCD.mortality.rate...per.100.000.population.&quot;, &quot;Male&quot; = &quot;Age.standardized.NCD.mortality.rate...per.100.000.population._1&quot;, &quot;Female&quot; = &quot;Age.standardized.NCD.mortality.rate...per.100.000.population._2&quot;)
+
+#In this step, I decreased the number of columns using pivot_longer to better analyze the data 
+noncom_diseases &lt;- renamed_data %&gt;% pivot_longer(cols= 3:5, names_to=&quot;sex&quot;, values_to=&quot;Age-standardized NCD mortality rate  (per 100 000 population)&quot;)
+#Removing variables that aren&#39;t necessary in my analysis
+noncom_diseases_tidy&lt;-noncom_diseases[-c(3:5)]
+
+####Tidying the Service Coverage data set
+delete_row_sc&lt;-service_coverage[-1,] #deleting row with years becuase only one year corresponds to the rest of my data 
+service_coverage_&lt;-delete_row_sc[-c(3,4:10,12,13)] #Only keeping the variables that are relevant to my analysis
+service_coverage_tidy &lt;- service_coverage_ %&gt;% mutate(Year=2015) #Created new year column so it can merge with my data
+
+
+####Tidying the Life Expectancy Data
+Life_Expectancy_Tidy &lt;-Life_Expectancy_Data[-c(6,9,10,12,13,15,16,18,19,20)]</code></pre>
+</div>
+<div id="joiningmerging-8-pts" class="section level4">
+<h4>2. Joining/Merging (8 pts)</h4>
+<ul>
+<li>Join your datasets into one using a <code>dplyr</code> join function</li>
+<li>If you have multiple observations on the joining variable in either dataset, fix this by collapsing via summarize</li>
+<li>Discuss the process in words, including why you chose the join you did</li>
+<li>Discuss which cases were dropped, if any, and potential problems with this</li>
+</ul>
+<pre class="r"><code>#Merging all 3 datasets together in final dataset called &quot;proj&quot;
+proj_2_dataset &lt;- inner_join(noncom_diseases_tidy, Life_Expectancy_Tidy)
+proj_join&lt;-inner_join(proj_2_dataset, service_coverage_tidy)
+proj&lt;-proj_join[-c(7:9,11,13)] #Deleting other columns that I will not be looking at in my project
+#Since all the data is now from the same Year, 2015, I will remove this column.
+proj&lt;-proj[-2]
+
+#Summarizing which cases were dropped
+country1&lt;-noncom_diseases_tidy$Country
+country2&lt;-Life_Expectancy_Data$Country
+
+setdiff(country1, country2)</code></pre>
+<pre><code>## [1] &quot;Eswatini&quot;        &quot;North Macedonia&quot;</code></pre>
+<pre class="r"><code>setdiff(country2, country1)</code></pre>
+<pre><code>##  [1] &quot;Cook Islands&quot;                             
+##  [2] &quot;Dominica&quot;                                 
+##  [3] &quot;Marshall Islands&quot;                         
+##  [4] &quot;Monaco&quot;                                   
+##  [5] &quot;Nauru&quot;                                    
+##  [6] &quot;Niue&quot;                                     
+##  [7] &quot;Palau&quot;                                    
+##  [8] &quot;Saint Kitts and Nevis&quot;                    
+##  [9] &quot;San Marino&quot;                               
+## [10] &quot;Swaziland&quot;                                
+## [11] &quot;The former Yugoslav republic of Macedonia&quot;
+## [12] &quot;Tuvalu&quot;</code></pre>
+<pre class="r"><code>Life_Expectancy_Data %&gt;% summarize_all(n_distinct) #193 distinct countries</code></pre>
+<pre><code>##   Country Year Status Life.expectancy Adult.Mortality infant.deaths Alcohol
+## 1     193   16      2             363             426           209    1077
+##   percentage.expenditure Hepatitis.B Measles BMI under.five.deaths Polio
+## 1                   2328          88     958 609               252    74
+##   Total.expenditure Diphtheria HIV.AIDS  GDP Population thinness..1.19.years
+## 1               819         82      200 2491       2279                  201
+##   thinness.5.9.years Income.composition.of.resources Schooling
+## 1                208                             626       174</code></pre>
+<pre class="r"><code>noncom_diseases_tidy %&gt;% summarize_all(n_distinct) #183 distinct countries</code></pre>
+<pre><code>## # A tibble: 1 x 4
+##   Country  Year   sex `Age-standardized NCD mortality rate  (per 100 000 popula…
+##     &lt;int&gt; &lt;int&gt; &lt;int&gt;                                                      &lt;int&gt;
+## 1     183     4     3                                                       1838</code></pre>
+<pre class="r"><code>service_coverage %&gt;% summarize_all(n_distinct) #184 distinct countries</code></pre>
+<pre><code>##   Country Data.availability.for.UHC.index.of.service.coverage..ranking.
+## 1     184                                                             4
+##   Data.availability.for.UHC.index.of.service.coverage
+## 1                                                  30
+##   UHC.index.of.service.coverage..SCI. UHC.index.of.service.coverage..SCI._2015
+## 1                                  53                                       57
+##   UHC.SCI.components..Reproductive..maternal..newborn.and.child.health
+## 1                                                                   61
+##   UHC.SCI.components..Reproductive..maternal..newborn.and.child.health.1
+## 1                                                                     60
+##   UHC.SCI.components...Infectious.diseases
+## 1                                       59
+##   UHC.SCI.components...Infectious.diseases.1
+## 1                                         63
+##   UHC.SCI.components..Noncommunicable.diseases
+## 1                                           44
+##   UHC.SCI.components..Noncommunicable.diseases.1
+## 1                                             45
+##   UHC.SCI.components..Service.capacity.and.access
+## 1                                              74
+##   UHC.SCI.components..Service.capacity.and.access.1
+## 1                                                78</code></pre>
+<pre class="r"><code>proj %&gt;% summarize_all(n_distinct) #181 distinct countries</code></pre>
+<pre><code>## # A tibble: 1 x 10
+##   Country   sex `Age-standardiz… Status Life.expectancy   BMI   GDP Schooling
+##     &lt;int&gt; &lt;int&gt;            &lt;int&gt;  &lt;int&gt;           &lt;int&gt; &lt;int&gt; &lt;int&gt;     &lt;int&gt;
+## 1     181     3              518      2             131   141   154        90
+## # … with 2 more variables:
+## #   Data.availability.for.UHC.index.of.service.coverage..ranking. &lt;int&gt;,
+## #   UHC.SCI.components..Noncommunicable.diseases.1 &lt;int&gt;</code></pre>
+<p><em>I used inner join to combine the datasets because I only wanted to keep the values that were found and matching inn both datasets. This included having the same countries and the same year of data, which resulted in all the data being from 2015. There were 12 countries were dropped because there wasn’t matching for these countries in the noncommunicable disease dataset.</em></p>
+</div>
+<div id="wrangling" class="section level4">
+<h4>3. Wrangling</h4>
+<pre class="r"><code>library(dplyr)
+
+#renaming variables so it is easier to conduct summary statisctics
+as.data.frame(names(proj))</code></pre>
+<pre><code>##                                                      names(proj)
+## 1                                                        Country
+## 2                                                            sex
+## 3  Age-standardized NCD mortality rate  (per 100 000 population)
+## 4                                                         Status
+## 5                                                Life.expectancy
+## 6                                                            BMI
+## 7                                                            GDP
+## 8                                                      Schooling
+## 9  Data.availability.for.UHC.index.of.service.coverage..ranking.
+## 10                UHC.SCI.components..Noncommunicable.diseases.1</code></pre>
+<pre class="r"><code>names(proj)[3] &lt;- &quot;NCD_mortality_rate&quot;
+names(proj)[9] &lt;-&quot;Service_Coverage_Ranking&quot;
+names(proj)[10]&lt;- &quot;UHC_SCI_NCD&quot;
+
+#The NCD mortality rate is showing up as a character value, so I converted the values to a numeric value
+proj$NCD_mortality_rate&lt;-as.numeric(as.character(proj$NCD_mortality_rate))
+
+
+#Adding new variable that classifies BMI scores as either &quot;Underweight&quot; , &quot;Normal or Healthy Weight&quot; &quot;Overweight&quot; and &quot;Obese&quot;. This will help us more easily see which countries have a higher risk for NCDs.
+
+proj&lt;-proj %&gt;% mutate(BMI_Ranking = case_when(BMI&gt;30 ~ &quot;Obese&quot;,
+                                                 BMI&lt;=29.9 &amp; 25&lt;=BMI ~ &quot;Overweight&quot;,
+                                                 BMI&lt;25 &amp; 18.5&lt;=BMI ~ &quot;Normal or Healthy Weight&quot;,
+                                                 BMI&lt;18.5 ~ &quot;Underweight&quot;))
+
+#General Summary Statistics for Numeric Variables
+
+#Means
+library(kableExtra)
+proj %&gt;% summarize(mean_NCD_mortality_Rate = mean(NCD_mortality_rate),
+                   mean_Life_Expectancy = mean(Life.expectancy),
+                   mean_BMI = mean(BMI, na.rm=T),
+                   mean_GDP = mean(GDP, na.rm=T),
+                   mean_Schooling=mean(Schooling, na.rm=T),
+                   mean_Service_Coverage_NCD = mean(UHC_SCI_NCD)) %&gt;% kable()</code></pre>
+<table>
+<thead>
+<tr>
+<th style="text-align:right;">
+mean_NCD_mortality_Rate
+</th>
+<th style="text-align:right;">
+mean_Life_Expectancy
+</th>
+<th style="text-align:right;">
+mean_BMI
+</th>
+<th style="text-align:right;">
+mean_GDP
+</th>
+<th style="text-align:right;">
+mean_Schooling
+</th>
+<th style="text-align:right;">
+mean_Service_Coverage_NCD
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:right;">
+571.5632
+</td>
+<td style="text-align:right;">
+71.66464
+</td>
+<td style="text-align:right;">
+43.0162
+</td>
+<td style="text-align:right;">
+7211.792
+</td>
+<td style="text-align:right;">
+12.93626
+</td>
+<td style="text-align:right;">
+63.56354
+</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>#Standard Deviations
+proj %&gt;% summarize(SD_NCD_mortality_Rate = sd(NCD_mortality_rate),
+                   SD_Life_Expectancy = sd(Life.expectancy),
+                   SD_BMI = sd(BMI, na.rm=T),
+                   SD_GDP = sd(GDP, na.rm=T),
+                   SD_Schooling=sd(Schooling, na.rm=T),
+                   SD_Service_Coverage_NCD = sd(UHC_SCI_NCD)) %&gt;% kable()</code></pre>
+<table>
+<thead>
+<tr>
+<th style="text-align:right;">
+SD_NCD_mortality_Rate
+</th>
+<th style="text-align:right;">
+SD_Life_Expectancy
+</th>
+<th style="text-align:right;">
+SD_BMI
+</th>
+<th style="text-align:right;">
+SD_GDP
+</th>
+<th style="text-align:right;">
+SD_Schooling
+</th>
+<th style="text-align:right;">
+SD_Service_Coverage_NCD
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:right;">
+174.6388
+</td>
+<td style="text-align:right;">
+8.09271
+</td>
+<td style="text-align:right;">
+20.56631
+</td>
+<td style="text-align:right;">
+11705.66
+</td>
+<td style="text-align:right;">
+2.921367
+</td>
+<td style="text-align:right;">
+10.75057
+</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>#Maxumum Values for each variable
+proj %&gt;% summarize(Max_NCD_mortality_Rate = max(NCD_mortality_rate),
+                  Max_Life_Expectancy = max(Life.expectancy),
+                   Max_BMI = max(BMI, na.rm=T),
+                   Max_GDP = max(GDP, na.rm=T),
+                   Max_Schooling=max(Schooling, na.rm=T),
+                  Max_Service_Coverage_NCD = max(UHC_SCI_NCD)) %&gt;% kable()</code></pre>
+<table>
+<thead>
+<tr>
+<th style="text-align:right;">
+Max_NCD_mortality_Rate
+</th>
+<th style="text-align:right;">
+Max_Life_Expectancy
+</th>
+<th style="text-align:right;">
+Max_BMI
+</th>
+<th style="text-align:right;">
+Max_GDP
+</th>
+<th style="text-align:right;">
+Max_Schooling
+</th>
+<th style="text-align:right;">
+Max_Service_Coverage_NCD
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:right;">
+1062.4
+</td>
+<td style="text-align:right;">
+88
+</td>
+<td style="text-align:right;">
+77.6
+</td>
+<td style="text-align:right;">
+66346.52
+</td>
+<td style="text-align:right;">
+20.4
+</td>
+<td style="text-align:right;">
+82
+</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>#Miniumum Values for each variable
+proj %&gt;% summarize(Min_NCD_mortality_Rate = min(NCD_mortality_rate),
+                  Min_Life_Expectancy = min(Life.expectancy),
+                   Min_BMI = min(BMI, na.rm=T),
+                   Min_GDP = min(GDP, na.rm=T),
+                   Min_Schooling=min(Schooling, na.rm=T),
+                  Min_Service_Coverage_NCD = min(UHC_SCI_NCD)) %&gt;% kable()</code></pre>
+<table>
+<thead>
+<tr>
+<th style="text-align:right;">
+Min_NCD_mortality_Rate
+</th>
+<th style="text-align:right;">
+Min_Life_Expectancy
+</th>
+<th style="text-align:right;">
+Min_BMI
+</th>
+<th style="text-align:right;">
+Min_GDP
+</th>
+<th style="text-align:right;">
+Min_Schooling
+</th>
+<th style="text-align:right;">
+Min_Service_Coverage_NCD
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:right;">
+181
+</td>
+<td style="text-align:right;">
+51
+</td>
+<td style="text-align:right;">
+2.5
+</td>
+<td style="text-align:right;">
+33.68122
+</td>
+<td style="text-align:right;">
+4.9
+</td>
+<td style="text-align:right;">
+13
+</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>#Arranging by NCD Mortality Rate
+proj %&gt;% arrange(-(NCD_mortality_rate))</code></pre>
+<pre><code>## # A tibble: 543 x 11
+##    Country sex   NCD_mortality_r… Status Life.expectancy   BMI   GDP Schooling
+##    &lt;fct&gt;   &lt;chr&gt;            &lt;dbl&gt; &lt;fct&gt;            &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;     &lt;dbl&gt;
+##  1 Kazakh… Male             1062. Devel…            72    53.1  160.      15  
+##  2 Mongol… Male             1057. Devel…            68.8  52.7 3944.      14.8
+##  3 Republ… Male             1030. Devel…            72.1  53.4   NA       NA  
+##  4 Turkme… Male             1029. Devel…            66.3  48.6 6433.      10.8
+##  5 Egypt   Male             1005. Devel…            79    61.1   NA       13.1
+##  6 Sierra… Fema…            1001. Devel…            51    24.4  588.       9.5
+##  7 Fiji    Male              990. Devel…            69.9  62.7 4922.      15.3
+##  8 Kyrgyz… Male              980. Devel…            71.1  44.9   NA       13  
+##  9 Sierra… Both…             967. Devel…            51    24.4  588.       9.5
+## 10 Kiriba… Male              965. Devel…            66.3  77.6 1424.      11.9
+## # … with 533 more rows, and 3 more variables: Service_Coverage_Ranking &lt;fct&gt;,
+## #   UHC_SCI_NCD &lt;int&gt;, BMI_Ranking &lt;chr&gt;</code></pre>
+<pre class="r"><code>proj %&gt;% arrange(NCD_mortality_rate)</code></pre>
+<pre><code>## # A tibble: 543 x 11
+##    Country sex   NCD_mortality_r… Status Life.expectancy   BMI    GDP Schooling
+##    &lt;fct&gt;   &lt;chr&gt;            &lt;dbl&gt; &lt;fct&gt;            &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt;     &lt;dbl&gt;
+##  1 Japan   Fema…             181  Devel…            83.7  29   34474.      15.3
+##  2 Republ… Fema…             204. Devel…            82.3  31.7    NA       NA  
+##  3 Singap… Fema…             210. Devel…            83.1  33.2 53630.      15.4
+##  4 France  Fema…             226. Devel…            82.4  62.5 36527.      16.3
+##  5 Spain   Fema…             232. Devel…            82.8  66.6 25684.      17.7
+##  6 Switze… Fema…             242. Devel…            83.4  57.4  8990.      16  
+##  7 Japan   Both…             245. Devel…            83.7  29   34474.      15.3
+##  8 Luxemb… Fema…             245. Devel…            82    61.3  1200.      13.9
+##  9 Portug… Fema…             251. Devel…            81.1  61.6  1923.      16.6
+## 10 Austra… Fema…             252. Devel…            82.8  66.6 56554.      20.4
+## # … with 533 more rows, and 3 more variables: Service_Coverage_Ranking &lt;fct&gt;,
+## #   UHC_SCI_NCD &lt;int&gt;, BMI_Ranking &lt;chr&gt;</code></pre>
+<pre class="r"><code>#Grouping Means using 1 cateforical variable (Status)
+proj %&gt;% group_by(Status) %&gt;% summarize_if(is.numeric, mean, nm.rm = T)</code></pre>
+<pre><code>## # A tibble: 2 x 7
+##   Status     NCD_mortality_ra… Life.expectancy   BMI   GDP Schooling UHC_SCI_NCD
+##   &lt;fct&gt;                  &lt;dbl&gt;           &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;     &lt;dbl&gt;       &lt;dbl&gt;
+## 1 Developed               400.            80.7  55.8    NA        NA        62.8
+## 2 Developing              608.            69.7  NA      NA        NA        63.7</code></pre>
+<pre class="r"><code>#Grouping Means using 2 categorical variables (Service Coverage Ranking and BMI Ranking)
+proj %&gt;% group_by(Service_Coverage_Ranking, BMI_Ranking) %&gt;% summarize_if(is.numeric, mean,nm.rm=T)</code></pre>
+<pre><code>## # A tibble: 14 x 8
+## # Groups:   Service_Coverage_Ranking [3]
+##    Service_Coverag… BMI_Ranking NCD_mortality_r… Life.expectancy   BMI   GDP
+##    &lt;fct&gt;            &lt;chr&gt;                  &lt;dbl&gt;           &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
+##  1 high             Normal or …             641.            65.6 21.2   677.
+##  2 high             Obese                   456.            78.2 60.0    NA 
+##  3 high             Overweight              657.            67.4 26.9  7689.
+##  4 high             Underweight             530.            73.5 10.0  2755.
+##  5 low              Normal or …             656.            57.9 22.9    NA 
+##  6 low              Obese                   607.            72.4 55.4    NA 
+##  7 low              Overweight              624.            64.1 27.5    NA 
+##  8 low              Underweight             672.            68.0  4.15 1127.
+##  9 low              &lt;NA&gt;                    560.            57.3 NA     759.
+## 10 medium           Normal or …             675.            62.0 21.6    NA 
+## 11 medium           Obese                   558.            74.5 54.2    NA 
+## 12 medium           Overweight              733.            58.2 27      NA 
+## 13 medium           Underweight             538.            74.8  8.19   NA 
+## 14 medium           &lt;NA&gt;                    745             64.1 NA    2514.
+## # … with 2 more variables: Schooling &lt;dbl&gt;, UHC_SCI_NCD &lt;dbl&gt;</code></pre>
+<pre class="r"><code>#Filtering based BMI Ranking
+proj %&gt;% filter(BMI_Ranking==&quot;Obese&quot;) %&gt;% summarize(mean(NCD_mortality_rate))</code></pre>
+<pre><code>## # A tibble: 1 x 1
+##   `mean(NCD_mortality_rate)`
+##                        &lt;dbl&gt;
+## 1                       536.</code></pre>
+<pre class="r"><code>proj %&gt;% filter(BMI_Ranking==&quot;Underweight&quot;) %&gt;% summarize(mean(NCD_mortality_rate))</code></pre>
+<pre><code>## # A tibble: 1 x 1
+##   `mean(NCD_mortality_rate)`
+##                        &lt;dbl&gt;
+## 1                       564.</code></pre>
+<pre class="r"><code>#
+proj %&gt;%  select(Country, NCD_mortality_rate, Life.expectancy, Schooling) %&gt;% arrange(Schooling)</code></pre>
+<pre><code>## # A tibble: 543 x 4
+##    Country     NCD_mortality_rate Life.expectancy Schooling
+##    &lt;fct&gt;                    &lt;dbl&gt;           &lt;dbl&gt;     &lt;dbl&gt;
+##  1 South Sudan               559             57.3       4.9
+##  2 South Sudan               584             57.3       4.9
+##  3 South Sudan               536             57.3       4.9
+##  4 Eritrea                   659.            64.7       5  
+##  5 Eritrea                   727.            64.7       5  
+##  6 Eritrea                   601.            64.7       5  
+##  7 Niger                     669.            61.8       5.4
+##  8 Niger                     686.            61.8       5.4
+##  9 Niger                     653.            61.8       5.4
+## 10 Djibouti                  605.            63.5       6.3
+## # … with 533 more rows</code></pre>
+<pre class="r"><code>#correlation matrix
+cormat &lt;- proj %&gt;% select_if(is.numeric) %&gt;% cor(use=&quot;pair&quot;)</code></pre>
+<p><em>In the first section of summary statistics, I found the mean, standard deviation, maximum value, and minimum value for each variable to understand the global data. I then arranged the data by noncommunicable disease mortality rate to see which countries had the highest and lowest rates. Khazikistan had the highest and Japan had the lowest NCD mortality rate. Next, I grouped the data by “Developing” and “Developed” countries and found the mean for each variable to see what the difference between the two. Then, I grouped the data by their service coverage ranking and the BMI ranking to see if countries with high coverage and a “Healthy Weight” population would have a lower mortality rate than the other countries. However, it appeared that there wasn’t a drastic difference between the two. My next statistic filtered the data by countries who had an “Obese”population and “Underweight”population. Since lack of physcial activity, hypertension, and diet are common predictors of noncommunicable diseases, I wanted to see if there was a large difference in the mortality rate. Surprisingly, in both sets of countreis, the noncommunicable disease related mortality rate was very similar. Next, I selected for Country, NCD Mortality rate, Life Expectancy, and Schooling, to view if countries with lower education have lower life expectancy and higher mortality rates. Lastly, I created a correlation matrix to see which pairs of variables had the highest correlation. This matrix will be useful in my correlation heat map.</em></p>
+</div>
+<div id="visualizing" class="section level4">
+<h4>4. Visualizing</h4>
+<pre class="r"><code>#Correlation heatmap
+
+#First, I need to tidy the correlation matrix
+tidycor &lt;- cormat %&gt;% as.data.frame %&gt;% rownames_to_column(&quot;var1&quot;) %&gt;%
+pivot_longer(-1,names_to=&quot;var2&quot;,values_to=&quot;correlation&quot;)
+tidycor</code></pre>
+<pre><code>## # A tibble: 36 x 3
+##    var1               var2               correlation
+##    &lt;chr&gt;              &lt;chr&gt;                    &lt;dbl&gt;
+##  1 NCD_mortality_rate NCD_mortality_rate       1    
+##  2 NCD_mortality_rate Life.expectancy         -0.645
+##  3 NCD_mortality_rate BMI                     -0.281
+##  4 NCD_mortality_rate GDP                     -0.414
+##  5 NCD_mortality_rate Schooling               -0.540
+##  6 NCD_mortality_rate UHC_SCI_NCD             -0.280
+##  7 Life.expectancy    NCD_mortality_rate      -0.645
+##  8 Life.expectancy    Life.expectancy          1    
+##  9 Life.expectancy    BMI                      0.526
+## 10 Life.expectancy    GDP                      0.455
+## # … with 26 more rows</code></pre>
+<pre class="r"><code>#Visualizing Correlation Matrix
+library(ggplot2)
+tidycor%&gt;%ggplot(aes(var1,var2,fill=correlation))+
+geom_tile()+
+scale_fill_gradient2(low=&quot;red&quot;,mid=&quot;white&quot;,high=&quot;blue&quot;)+
+geom_text(aes(label=round(correlation,2)),color = &quot;black&quot;, size = 1)+ 
+theme(axis.text.x = element_text(angle = 90, hjust=1))+ #
+coord_fixed() </code></pre>
+<p><img src="/project/project1_files/figure-html/unnamed-chunk-4-1.png" width="672" style="display: block; margin: auto;" />
+<em>The correlational heatmap created visually shows the strength of correlation between all of the numeric variables from my dataset. From this map, I see that schooling and life expectancy have the strongest positive correlation. This may emphasize that higher education can be associated with better life outcomes. NCD mortality rate and Life expectancy and NCD Mortality rate and Schooling have the strongest negative correlations. THis makes sense, because if there is higher NCD mortality rates in a country, many people are dying prematurely, which would lower the life expectancy. Similarily with schooling, lower levels of education are associated with higher NCD mortality rates. This also makes sense because schooling can often teach about health and provide opportunites for better health outcomes</em></p>
+<pre class="r"><code>#Plot 1
+library(RColorBrewer)
+proj %&gt;% ggplot(aes(`GDP`, NCD_mortality_rate)) + geom_point(size=2, aes(color=UHC_SCI_NCD))+ggtitle(&quot;Noncommunicable Disease Mortality Rate across GDP for Countries around the World&quot;) + scale_fill_brewer(palette= &quot;Set1&quot;) + ylab(&quot;Age-standardized NCD mortality rate  (per 100 000 population)&quot;) + xlab(&quot;GDP&quot;) + scale_x_continuous(n.breaks=10) + scale_y_continuous(n.breaks=10)+ labs(color = &quot;SCI for NCDs&quot;)+theme_light()+scale_color_gradient(low=&quot;light blue&quot;, high=&quot;Dark blue&quot;)</code></pre>
+<p><img src="/project/project1_files/figure-html/unnamed-chunk-5-1.png" width="672" style="display: block; margin: auto;" />
+<em>The plot depicts NCD mortality rate across GDP values for different countries, color-coded by the Service Coverage Index for Noncommunicable diseases. Based on this plit, there is a trend that higher GDP countries have lower NCD mortality rate. While that result was expected, I am surprised to see that there is high service coverage for NCDs in lower GDP countries. This shows that even countries with less to spend are still prioritizing heath outomes related to NCD as much as wealthier countries. I also did not expect for their to be countries with high mortality rate to also have high service coverage for NCDs. I would have assumed that countries that have essential services directed toward NCDs would be able to reduce their NCD deaths.</em></p>
+<pre class="r"><code>#Plot 2
+proj %&gt;% ggplot(aes(x = Service_Coverage_Ranking, y = NCD_mortality_rate, fill=Status))+
+geom_bar(stat=&quot;summary&quot;, position=&quot;dodge&quot;)+geom_errorbar(stat=&quot;summary&quot;,position=&quot;dodge&quot;) +
+xlab(&quot;UHC Index of Service Coverage Ranking&quot;) + ylab(&quot;Age-standardized NCD mortality rate  (per 100 000 population)&quot;) + ggtitle(&quot;Noncommunicable Disease Mortality Rate by Service Coverage Index Globally&quot;) + theme_dark() +scale_fill_brewer(palette=&quot;Blues&quot;)</code></pre>
+<p><img src="/project/project1_files/figure-html/unnamed-chunk-6-1.png" width="672" style="display: block; margin: auto;" />
+<em>In this barplot, I depicted the NCD mortality rate based on country’s service coverage ranking and the status of the countries. As expected, Developing countries across all service coverage rankings have much higher overall NCD mortality rates. Furthermore, this plot shows that developing countries with low service coverage have the lower NCD mortality rate, which is extremely unexpected. However, the developing countries with low service coverage have the highest mortality rates. Between the low and high coverage for developing countries, there is very little difference in the mortality rates. This may be an indicator that there are other variables contributing to the high NCD mortality rate.</em></p>
+</div>
+<div id="dimensionality-reduction-k-meanspam" class="section level4">
+<h4>5. Dimensionality Reduction: K-means/PAM</h4>
+<pre class="r"><code>#k-means/PAM
+library(cluster)
+
+#First, process the data so it only has numeric variables
+proj_data &lt;- proj %&gt;% na.omit() %&gt;% select_if(is.numeric)
+
+#Using silhouette method to chose number of cluster
+sil_width&lt;-vector() 
+for(i in 2:10){
+kms &lt;- kmeans(proj_data,centers=i) 
+sil &lt;- silhouette(kms$cluster,dist(proj_data)) 
+sil_width[i]&lt;-mean(sil[,3]) 
+}
+ggplot()+geom_line(aes(x=1:10,y=sil_width))+scale_x_continuous(name=&quot;k&quot;,breaks=1:10)</code></pre>
+<p><img src="/project/project1_files/figure-html/unnamed-chunk-7-1.png" width="672" style="display: block; margin: auto;" />
+<em>This silhoutte method tells us that 2 clusters is optimal.</em></p>
+<pre class="r"><code>#Run CLuster Analysis (PAM)
+pam1 &lt;- proj_data %&gt;% scale %&gt;% pam(k=2)
+pam1</code></pre>
+<pre><code>## Medoids:
+##       ID NCD_mortality_rate Life.expectancy        BMI        GDP  Schooling
+## [1,] 103          0.7111752      -1.0563361 -0.8707185 -0.5600769 -0.7275535
+## [2,] 420         -0.5340437       0.4043787  0.8848899 -0.2970509  0.5026094
+##      UHC_SCI_NCD
+## [1,]   0.4349424
+## [2,]   0.1487961
+## Clustering vector:
+##   [1] 1 1 1 2 2 2 2 2 2 1 1 1 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 1 2 2 2 2 1 1 1 2
+##  [38] 2 2 2 2 2 2 2 2 1 1 1 1 1 1 1 1 1 2 2 2 1 1 1 2 2 2 2 2 2 2 2 2 1 1 1 1 1
+##  [75] 1 2 1 2 1 1 1 1 1 1 2 2 2 1 1 1 1 1 1 2 2 2 2 2 2 2
+##  [ reached getOption(&quot;max.print&quot;) -- omitted 350 entries ]
+## Objective function:
+##    build     swap 
+## 1.948167 1.819797 
+## 
+## Available components:
+##  [1] &quot;medoids&quot;    &quot;id.med&quot;     &quot;clustering&quot; &quot;objective&quot;  &quot;isolation&quot; 
+##  [6] &quot;clusinfo&quot;   &quot;silinfo&quot;    &quot;diss&quot;       &quot;call&quot;       &quot;data&quot;</code></pre>
+<pre class="r"><code>#Visualize Clusters
+pamclust&lt;-proj_data %&gt;% mutate(cluster=as.factor(pam1$clustering))
+pamclust %&gt;% ggplot(aes(NCD_mortality_rate,GDP,color=cluster)) + geom_point()</code></pre>
+<p><img src="/project/project1_files/figure-html/unnamed-chunk-9-1.png" width="672" style="display: block; margin: auto;" />
+<em>Based on this plot, there are countries that can be clustered based on low GDP and a mid-range NCD mortality rate. This is differntiated from my other cluster in which countries are characterized by low mortality rate and high GDP.</em></p>
+<pre class="r"><code>#Visualize Clusters
+pamclust %&gt;% ggplot(aes(NCD_mortality_rate,UHC_SCI_NCD,color=cluster)) + geom_point()</code></pre>
+<p><img src="/project/project1_files/figure-html/unnamed-chunk-10-1.png" width="672" style="display: block; margin: auto;" />
+<em>In this plot, we can see my data’s observations can be grouped into clusters characterized by higher NCD mortality rate. However, the clustering does not seem to be taking into account differences in service coverage for NCD’s, because the spread on the Y axis seems to be very similar across both clusters. This indicates that my data’s observations can be formed into distinct groups based on NCD mortality rate, but not sercive coverage for NCD’s. This is likely because there are so many observations in my dataset, that they don’t group well based on this particular pairwise combination because service coverage must be widely varied across all of my variations.</em></p>
+<pre class="r"><code>#Visualiz Clusters
+pamclust %&gt;% ggplot(aes(GDP,UHC_SCI_NCD,color=cluster)) + geom_point()</code></pre>
+<p><img src="/project/project1_files/figure-html/unnamed-chunk-11-1.png" width="672" style="display: block; margin: auto;" />
+<em>In this plot, clusters can be made from variation in GDP, but again, service coverage is not a good way to differentiate between twpo clustering groups because we can see that its spread is largely uniform across both clusters.</em></p>
+<pre class="r"><code>#Summary of clusters
+pamclust %&gt;% group_by(cluster) %&gt;% summarize_if(is.numeric,mean,na.rm=T)</code></pre>
+<pre><code>## # A tibble: 2 x 7
+##   cluster NCD_mortality_rate Life.expectancy   BMI    GDP Schooling UHC_SCI_NCD
+##   &lt;fct&gt;                &lt;dbl&gt;           &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt;     &lt;dbl&gt;       &lt;dbl&gt;
+## 1 1                     674.            64.6  24.1  2186.      10.7        64.3
+## 2 2                     480.            77.4  55.9 11057.      15.0        62.8</code></pre>
+<pre class="r"><code>#Goodness of Fit
+pam1$silinfo$avg.width</code></pre>
+<pre><code>## [1] 0.3281456</code></pre>
+<pre class="r"><code>plot(pam1,which=2)</code></pre>
+<p><img src="/project/project1_files/figure-html/unnamed-chunk-13-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>pam1$silinfo$widths %&gt;% as.data.frame %&gt;% mutate(x=dim(pam1$silinfo$widths)[1]:1)%&gt;% 
+ggplot(aes(x, y=sil_width, fill=as.factor(cluster))) + geom_bar(stat=&quot;identity&quot;) + xlab(&quot;&quot;) +
+facet_grid(cluster~., scales=&quot;free_y&quot;) + coord_flip() + theme(legend.position=&quot;none&quot;)</code></pre>
+<p><img src="/project/project1_files/figure-html/unnamed-chunk-13-2.png" width="672" style="display: block; margin: auto;" />
+<em>The average silhouette width was 0.31 meaning the structure is weak and could be artificial. When the silhouette width is low, it means that the structuring isn’t very representative of my data and shouldn’t be used further. A reason for this could be the variability in data, since my data looks at all countries around the world. To make the clusters more appropriate, more data cleaning needs to be done.</em></p>
+<p>…</p>
+</div>
+
+            
+        <hr>         <div class="related-posts">
+                <h5>Related Posts</h5>
+                
+              </div> 
+            </div>
+          </div>
+
+   <hr>  <div class="disqus">
+  <div id="disqus_thread"></div>
+  <script type="text/javascript">
+
+    (function() {
+      
+      
+      if (window.location.hostname == "localhost")
+        return;
+
+      var disqus_shortname = '';
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  <a href="http://disqus.com/" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+</div> 
+        </div>
+      </div>
+    </div>
+
+    
+    <footer>
+  <div id="footer">
+    <div class="container">
+      <p class="text-muted">&copy; All rights reserved. Powered by <a href="https://gohugo.io/">Hugo</a> and
+      <a href="http://www.github.com/nurlansu/hugo-sustain/">sustain</a> with ♥</p>
+    </div>
+  </div>
+</footer>
+<div class="footer"></div>
+
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+<script src="/js/docs.min.js"></script>
+<script src="/js/main.js"></script>
+
+<script src="/js/ie10-viewport-bug-workaround.js"></script>
+
+
+    
+  </body>
+</html>
