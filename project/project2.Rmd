@@ -60,13 +60,13 @@ data.frame(acc,sens,spec,ppv,f1,auc)
 
 
 
-#Introduction
+## Introduction
 My dataset consists of 1,138 people and the charges of their medical costs billed by their health insurance. The other main variables include their age, sex, BMI, number of children, smoker status, and residential region across the US. An interesting thing to see is if any of these factors predict higher insurance charges. 
 ```{r}
 insurance <- read.csv("insurance.csv")
 glimpse(insurance)
 ```
-#MANOVA
+## MANOVA
 ```{r}
 #MANOVA assumptions
 library(rstatix)
@@ -106,7 +106,7 @@ I  performed 1 MANOVA test, 4 ANOVA tests, and 12 pos-hoc t-tests resulting in a
 
 For the MANOVA test, we need to test two major assumptions. First, whether the response variables come from a multivariate normal distribution and second, for each group, the variance-covariance matrices for your response variables are equal in the population. The p-values are all less than 0.5 for the first test meaning that the null hypothesis, which states that the data came from a multivariate normal distribution, is not met. This assumption is violated and this is a limitation of the accuracy of the statistical tests we conducted. Since the first assumption was not met, I did not need to test the variance/covariance across the population because they will also not be met.
 
-#Randomization test 
+## Randomization test 
 ```{r}
 #Ho: mean insurance charges are the same between males and females
 #Ha: mean insurance charges are not the same between males and females
@@ -129,7 +129,7 @@ mean(rand_dist>1387.172 | rand_dist< -1387.172) #two-tailed p value
 ```
 The null hypothesis is mean insurance charges are the same between males and females. The alternative hypothesis is mean insurance charges are the not the same between males and females. I conducted a mean difference test over 5,000 random permuations to create a random distribution. I calculated a p-value of 0.0366 which is less than 0.05, indicating that we can reject the null hypothesis. This means that there is an association between sex and insurance charges since the mean difference between them are significant.
 
-#Linear Model
+## Linear Model
 ```{r}
 #mean-center numeric variables
 insurance$bmi_c <- insurance$bmi - mean(insurance$bmi)
@@ -169,7 +169,7 @@ After using robust standard errors, the standard errors decreased for the interc
 
 The R-squared value is 0.7418 and the adjusted R-squared value is 0.7412. This can be interpreted as 74.12% of variability of charges are based on these two explanatory variables, BMI and smoker status.
 
-#Bootstrappped standard errors 
+## Bootstrappped standard errors 
 
 ```{r}
 samp_distn<-replicate(5000, {
@@ -188,7 +188,7 @@ coeftest(fit, vcov=vcovHC(fit))
 ```
 The bootstrapped standard errors are very similar to the Robust standard errors and relatively different compared to the original standard errors. The boostrapped SEs are slightly lower for the intercept, BMI, and BMI/smoker interaction compared to the robust standard errors but slighly higher for the smoker variable. Both the robust SEs and boostrapped SEs could be used to take into account that the data has heteroskedacity. 
 
-#Logistic Regression
+## Logistic Regression
 ```{r}
 #create binary variable
 insurance<-insurance%>%mutate(y=ifelse(smoker=="yes",1,0))
@@ -227,7 +227,7 @@ The accuracy of the model is 90.28% which is relatively good. The sensitivity is
 
 
 
-#Logistic Regression with LASSO
+## Logistic Regression with LASSO
 ```{r}
 logfit2<-glm(y~bmi_c+charges+children+age_c+sex+region,data=insurance,family=binomial(link="logit"))
 coeftest(logfit2)

@@ -22,7 +22,7 @@
       <pubDate>Tue, 22 Sep 2020 00:00:00 +0000</pubDate>
       
       <guid>/project/project2/</guid>
-      <description>#Introduction My dataset consists of 1,138 people and the charges of their medical costs billed by their health insurance. The other main variables include their age, sex, BMI, number of children, smoker status, and residential region across the US. An interesting thing to see is if any of these factors predict higher insurance charges.
+      <description>Introduction My dataset consists of 1,138 people and the charges of their medical costs billed by their health insurance. The other main variables include their age, sex, BMI, number of children, smoker status, and residential region across the US. An interesting thing to see is if any of these factors predict higher insurance charges.
 insurance &amp;lt;- read.csv(&amp;quot;insurance.csv&amp;quot;) glimpse(insurance) ## Rows: 1,338 ## Columns: 7 ## $ age &amp;lt;int&amp;gt; 19, 18, 28, 33, 32, 31, 46, 37, 37, 60, 25, 62, 23, 56, 27, 19, 52, 23, 56, 30, … ## $ sex &amp;lt;fct&amp;gt; female, male, male, male, male, female, female, female, male, female, male, fema… ## $ bmi &amp;lt;dbl&amp;gt; 27.</description>
     </item>
     
